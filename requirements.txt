@@ -1,0 +1,6 @@
+jupyterlab
+numpy==1.23.1
+opencv-python
+Pillow
+torch
+torchvision
