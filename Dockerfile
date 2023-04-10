@@ -31,4 +31,5 @@ RUN python3 -m pip install -U pip && python3 -m pip install -r requirements.txt
 
 ADD . .
 
-RUN wget https://github.com/magicleap/SuperPointPretrainedNetwork/raw/master/superpoint_v1.pth
+RUN wget https://github.com/magicleap/SuperPointPretrainedNetwork/raw/master/superpoint_v1.pth && \
+    wget https://github.com/magicleap/SuperGluePretrainedNetwork/raw/master/models/weights/superglue_indoor.pth
