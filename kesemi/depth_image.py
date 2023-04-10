@@ -21,21 +21,6 @@ def get_3d_point(kpt, d, intrinsics):
     return [x, y, z]
 
 
-def get_3d_keypoints(depth, kpts, intrinsics, depth_scale):
-    N_kpts = kpts.shape[0]
-    points = []
-    for i in range(N_kpts):
-        points.append(
-            get_3d_point(
-                kpts[i],
-                depth.getpixel((kpts[i][0], kpts[i][1])) / depth_scale,
-                intrinsics,
-            )
-        )
-
-    return points
-
-
 def mask_points_with_depth(depth, kpts):
     N_kpts = kpts.shape[0]
     mask = np.full(N_kpts, False)
@@ -45,21 +30,28 @@ def mask_points_with_depth(depth, kpts):
     return mask
 
 
-class TrainImage:
+class DepthImage:
     def __init__(
         self,
         path_to_depth: Path,
-        path_to_color: Path,
+        kpts_2d,
         intrinsics,
-        local_extractor,
         depth_scale,
     ):
         self.depth_image = Image.open(path_to_depth)
-        self.color_image = Image.open(path_to_color)
         self.intrinsics = intrinsics
 
-        kpts, descs = local_extractor.extract_keypoints_descriptors(self.color_image)
-        mask_depth = mask_points_with_depth(self.depth_image, kpts)
-        kpts = kpts[mask_depth]
-        self.descs = descs[mask_depth]
-        self.kpts_3d = get_3d_keypoints(self.depth_image, kpts, intrinsics, depth_scale)
+        self.mask_depth = mask_points_with_depth(self.depth_image, kpts_2d)
+        self.kpts_3d = np.full((len(kpts_2d), 3), np.nan)
+        for i, is_valid in enumerate(self.mask_depth):
+            if not is_valid:
+                continue
+            self.kpts_3d[i] = get_3d_point(
+                kpts_2d[i],
+                self.depth_image.getpixel((kpts_2d[i][0], kpts_2d[i][1])) / depth_scale,
+                intrinsics,
+            )
+
+    def filter_matches_with_depth_mask(self, matches):
+        mask_depth_set_indices = set(self.mask_depth.nonzero()[0])
+        return list(filter(lambda match: match[0] in mask_depth_set_indices, matches))

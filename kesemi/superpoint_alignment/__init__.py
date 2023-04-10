@@ -1,2 +1,1 @@
-from kesemi.superpoint_alignment.extractor import SuperPointExtractor
-from kesemi.superpoint_alignment.matcher import SuperPointMatcher
+from kesemi.superpoint_alignment.superpoint import SuperPoint
